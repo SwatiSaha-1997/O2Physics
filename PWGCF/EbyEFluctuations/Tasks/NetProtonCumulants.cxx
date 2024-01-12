@@ -35,10 +35,10 @@ namespace o2::aod
 namespace netprotonNum
 {
 DECLARE_SOA_COLUMN(NetProtNo, net_prot_no, float); //! net proton no. in an event
-DECLARE_SOA_COLUMN(N_ch, n_ch, float); //! no of charged particles/multiplicity in an event
+DECLARE_SOA_COLUMN(N_ch, n_ch, float);             //! no of charged particles/multiplicity in an event
 DECLARE_SOA_COLUMN(Centrality, centrality, float); //! Centrality of event
-} // namespace ptQn
-  DECLARE_SOA_TABLE(NetProton, "AOD", "NETPROTONNUM", netprotonNum::NetProtNo, netprotonNum::N_ch, netprotonNum::Centrality); //! table to store e-by-e net-proton numbers, multiplicity and centrality
+} // namespace netprotonNum
+DECLARE_SOA_TABLE(NetProton, "AOD", "NETPROTONNUM", netprotonNum::NetProtNo, netprotonNum::N_ch, netprotonNum::Centrality); //! table to store e-by-e net-proton numbers, multiplicity and centrality
 } // namespace o2::aod
 
 using namespace o2;
@@ -54,7 +54,7 @@ struct NetProtonCumulants_Table_QA {
   Configurable<float> cfgCutPtUpperTPC{"cfgCutPtUpperTPC", 0.6f, "Upper pT cut for PID using TPC only"};
   Configurable<float> cfgCutTpcChi2NCl{"cfgCutTpcChi2NCl", 2.5f, "Maximum TPCchi2NCl"};
   Configurable<float> cfgnSigmaCut{"cfgnSigmaCut", 2.0f, "PID nSigma cut"};
-  
+
   // Filter command***********
   Filter collisionFilter = nabs(aod::collision::posZ) < cfgCutVertex;
   Filter trackFilter = (nabs(aod::track::eta) < 0.8f) && (aod::track::pt > cfgCutPtLower) && (aod::track::pt < 5.0f) && ((requireGlobalTrackInFilter()) || (aod::track::isGlobalTrackSDD == (uint8_t) true)) && (aod::track::tpcChi2NCl < cfgCutTpcChi2NCl);
@@ -82,7 +82,7 @@ struct NetProtonCumulants_Table_QA {
     std::vector<double> centBining = {0, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90};
     AxisSpec centAxis = {centBining, "centrality (%)"};
     AxisSpec netProtonAxis = {2001, -1000.5, 1000.5, "net-proton number"};
-    
+
     // Add histograms to histogram manager (as in the output object of in AliPhysics)
     histos.add("hZvtx_after_sel", ";Z (cm)", kTH1F, {vtxZAxis});
     histos.add("hPtAll", ";#it{p}_{T} (GeV/#it{c})", kTH1F, {ptAxis});
@@ -100,13 +100,13 @@ struct NetProtonCumulants_Table_QA {
   }
 
   Produces<aod::NetProton> net_proton_num; //! table creation
-								
+
   // void process(aod::Collision const& coll, aod::Tracks const& inputTracks)
   void process(aodCollisions::iterator const& coll, aod::BCsWithTimestamps const&, aodTracks const& inputTracks)
   {
     histos.fill(HIST("hZvtx_after_sel"), coll.posZ());
     histos.fill(HIST("hCentrality"), coll.centFT0C());
-    
+
     // variables
     float cent = coll.centFT0C();
     float n_ch = 0.0;
@@ -118,45 +118,45 @@ struct NetProtonCumulants_Table_QA {
 
       for (auto track : inputTracks) { //! Loop over tracks
 
-	histos.fill(HIST("hPtAll"), track.pt());
-	histos.fill(HIST("hEtaAll"), track.eta());
-	histos.fill(HIST("hPhiAll"), track.phi());
+        histos.fill(HIST("hPtAll"), track.pt());
+        histos.fill(HIST("hEtaAll"), track.eta());
+        histos.fill(HIST("hPhiAll"), track.phi());
 
-	//! PID checking
-	int flag=0; 
-	if (track.pt() > 0.2f && track.pt() <= cfgCutPtUpperTPC) {
-	  if (track.tpcNSigmaPr() < cfgnSigmaCut) {
-	    flag = 1;
-	  }
-	}
-	if (track.pt() > cfgCutPtUpperTPC && track.pt() < 5.0f) {
-	  const float combNSigmaPr = std::sqrt(pow(track.tpcNSigmaPr(), 2.0) + pow(track.tofNSigmaPr(), 2.0));
-	  const float combNSigmaPi = std::sqrt(pow(track.tpcNSigmaPi(), 2.0) + pow(track.tofNSigmaPi(), 2.0));
-	  const float combNSigmaKa = std::sqrt(pow(track.tpcNSigmaKa(), 2.0) + pow(track.tofNSigmaKa(), 2.0));
-	  if (!(combNSigmaPr > combNSigmaPi) && !(combNSigmaPr > combNSigmaKa)) {
-	    if (track.tpcNSigmaPr() < cfgnSigmaCut) {
-	      flag = 1;
-	    } 
-	  }
-	}
+        //! PID checking
+        int flag = 0;
+        if (track.pt() > 0.2f && track.pt() <= cfgCutPtUpperTPC) {
+          if (track.tpcNSigmaPr() < cfgnSigmaCut) {
+            flag = 1;
+          }
+        }
+        if (track.pt() > cfgCutPtUpperTPC && track.pt() < 5.0f) {
+          const float combNSigmaPr = std::sqrt(pow(track.tpcNSigmaPr(), 2.0) + pow(track.tofNSigmaPr(), 2.0));
+          const float combNSigmaPi = std::sqrt(pow(track.tpcNSigmaPi(), 2.0) + pow(track.tofNSigmaPi(), 2.0));
+          const float combNSigmaKa = std::sqrt(pow(track.tpcNSigmaKa(), 2.0) + pow(track.tofNSigmaKa(), 2.0));
+          if (!(combNSigmaPr > combNSigmaPi) && !(combNSigmaPr > combNSigmaKa)) {
+            if (track.tpcNSigmaPr() < cfgnSigmaCut) {
+              flag = 1;
+            }
+          }
+        }
 
-	if (track.pt() > cfgCutPtLower && track.pt() < cfgCutPtUpper && track.sign() != 0 && TMath::Abs(track.eta()) < cfgCutEta) {
-	  if (flag == 1) {
-	    if (track.sign() > 0) {
-	      histos.fill(HIST("hPtProton"), track.pt());
-	      histos.fill(HIST("hEtaProton"), track.eta());
-	      histos.fill(HIST("hPhiProton"), track.phi());
-	      n_prot = n_prot + 1.0; //! calculating no. of proton
-	    }
-	    if (track.sign() < 0) {
-	      histos.fill(HIST("hPtAntiproton"), track.pt());
-	      histos.fill(HIST("hEtaAntiproton"), track.eta());
-	      histos.fill(HIST("hPhiAntiproton"), track.phi());
-	      n_antiprot = n_antiprot + 1.0; //! calculating no. of anti-proton
-	    }
-	  }
-	  n_ch = n_ch + 1; //! calculating no. of charged particles
-	}
+        if (track.pt() > cfgCutPtLower && track.pt() < cfgCutPtUpper && track.sign() != 0 && TMath::Abs(track.eta()) < cfgCutEta) {
+          if (flag == 1) {
+            if (track.sign() > 0) {
+              histos.fill(HIST("hPtProton"), track.pt());
+              histos.fill(HIST("hEtaProton"), track.eta());
+              histos.fill(HIST("hPhiProton"), track.phi());
+              n_prot = n_prot + 1.0; //! calculating no. of proton
+            }
+            if (track.sign() < 0) {
+              histos.fill(HIST("hPtAntiproton"), track.pt());
+              histos.fill(HIST("hEtaAntiproton"), track.eta());
+              histos.fill(HIST("hPhiAntiproton"), track.phi());
+              n_antiprot = n_antiprot + 1.0; //! calculating no. of anti-proton
+            }
+          }
+          n_ch = n_ch + 1; //! calculating no. of charged particles
+        }
       } //! end loop on tracks
 
       float net_prot = n_prot - n_antiprot;
@@ -164,7 +164,7 @@ struct NetProtonCumulants_Table_QA {
       histos.fill(HIST("hNetProtonVsCentrality"), net_prot, cent);
       histos.fill(HIST("hProfileTotalProton"), cent, (n_prot + n_antiprot));
     }
-    
+
   } //! end process loop
 };
 
@@ -199,8 +199,7 @@ struct NetProtonCumulants_analysis {
     registry.add("Prof2D_mu6_netproton", "", {HistType::kTProfile2D, {centAxis, multAxis}});
     registry.add("Prof2D_mu7_netproton", "", {HistType::kTProfile2D, {centAxis, multAxis}});
     registry.add("Prof2D_mu8_netproton", "", {HistType::kTProfile2D, {centAxis, multAxis}});
-    
-    
+
     // initial array
     Subsample2D.resize(cfgNSubsample);
     Subsample.resize(cfgNSubsample);
@@ -230,7 +229,6 @@ struct NetProtonCumulants_analysis {
     }
   }
 
-  
   void process(aod::NetProton::iterator const& event_netproton)
   {
     // LOGF(info, "Centrality= %f Nch= %f net-proton no. = %f", event_netproton.centrality(), event_netproton.n_ch(), event_netproton.net_prot_no());
@@ -244,7 +242,7 @@ struct NetProtonCumulants_analysis {
     registry.get<TProfile2D>(HIST("Prof2D_mu6_netproton"))->Fill(event_netproton.centrality(), event_netproton.n_ch(), pow(event_netproton.net_prot_no(), 6.0));
     registry.get<TProfile2D>(HIST("Prof2D_mu7_netproton"))->Fill(event_netproton.centrality(), event_netproton.n_ch(), pow(event_netproton.net_prot_no(), 7.0));
     registry.get<TProfile2D>(HIST("Prof2D_mu8_netproton"))->Fill(event_netproton.centrality(), event_netproton.n_ch(), pow(event_netproton.net_prot_no(), 8.0));
-    
+
     registry.get<TProfile>(HIST("Prof_mu1_netproton"))->Fill(event_netproton.centrality(), pow(event_netproton.net_prot_no(), 1.0));
     registry.get<TProfile>(HIST("Prof_mu2_netproton"))->Fill(event_netproton.centrality(), pow(event_netproton.net_prot_no(), 2.0));
     registry.get<TProfile>(HIST("Prof_mu3_netproton"))->Fill(event_netproton.centrality(), pow(event_netproton.net_prot_no(), 3.0));
@@ -253,7 +251,7 @@ struct NetProtonCumulants_analysis {
     registry.get<TProfile>(HIST("Prof_mu6_netproton"))->Fill(event_netproton.centrality(), pow(event_netproton.net_prot_no(), 6.0));
     registry.get<TProfile>(HIST("Prof_mu7_netproton"))->Fill(event_netproton.centrality(), pow(event_netproton.net_prot_no(), 7.0));
     registry.get<TProfile>(HIST("Prof_mu8_netproton"))->Fill(event_netproton.centrality(), pow(event_netproton.net_prot_no(), 8.0));
-    
+
     // selecting subsample and filling profiles
     float l_Random = fRndm->Rndm();
     int SampleIndex = static_cast<int>(cfgNSubsample * l_Random);
