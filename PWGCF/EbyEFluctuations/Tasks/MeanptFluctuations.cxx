@@ -164,6 +164,7 @@ struct MeanptFluctuationsAnalysis {
   using EventCandidatesMC = soa::Join<aod::Collisions, aod::EvSels, aod::McCollisionLabels, aod::CentFT0Cs, aod::CentFT0Ms, aod::CentFT0As, aod::CentFV0As, aod::Mults>;
 
   Preslice<MyMCTracks> perCollision = aod::track::collisionId;
+  Preslice<aod::McParticles> perMcCollision = aod::mcparticle::mcCollisionId;
 
   // Event selection cuts - Alex
   TF1* fMultPVCutLow = nullptr;
@@ -677,7 +678,10 @@ struct MeanptFluctuationsAnalysis {
     // Calculating generated no of particles for the collision event
     double noGen = 0.0;
     auto mcColl = collision.mcCollision();
-    for (const auto& mcParticle : mcParticles) {
+    // Slice particles belonging only to this MC collision
+    auto particlesThisEvent = mcParticles.sliceBy(perMcCollision, mcColl.globalIndex());
+
+    for (const auto& mcParticle : particlesThisEvent) {
       if (!mcParticle.has_mcCollision())
         continue;
 
