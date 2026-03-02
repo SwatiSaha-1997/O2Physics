@@ -733,7 +733,7 @@ struct MeanptFluctuationsAnalysis {
       }
 
       histos.fill(HIST("his2DdcaXYvsPtBeforePtDepSel"), track.pt(), track.dcaXY());
-      histos.fill(HIST("his2DdcaZvsPtPtBeforePtDepSel"), track.pt(), track.dcaZ());
+      histos.fill(HIST("his2DdcaZvsPtBeforePtDepSel"), track.pt(), track.dcaZ());
 
       if (cfgUsePtDepDCAxy && !(std::abs(track.dcaXY()) < fPtDepDCAxy->Eval(track.pt()))) {
         continue;
@@ -882,7 +882,7 @@ struct MeanptFluctuationsAnalysis {
       }
 
       histos.fill(HIST("his2DdcaXYvsPtBeforePtDepSel"), track.pt(), track.dcaXY());
-      histos.fill(HIST("his2DdcaZvsPtPtBeforePtDepSel"), track.pt(), track.dcaZ());
+      histos.fill(HIST("his2DdcaZvsPtBeforePtDepSel"), track.pt(), track.dcaZ());
 
       if (cfgUsePtDepDCAxy && !(std::abs(track.dcaXY()) < fPtDepDCAxy->Eval(track.pt()))) {
         continue;
